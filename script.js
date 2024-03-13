@@ -213,7 +213,7 @@ function roda() {
   window.requestAnimationFrame(roda);
 }
 function main() {
-  game.setCurrentStat(estados.jogar);
+  game.setCurrentState(estados.jogar);
   img = new Image();
   img.src = "newsprite.png";
   roda();
@@ -469,5 +469,5 @@ document.addEventListener(
 );
 
 //inicializa o jogo
-let game = new Game(0, 0, "Fácil")
+let game = new Game(0, 0, "Muito Fácil")
 main();
