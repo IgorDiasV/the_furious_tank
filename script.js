@@ -7,6 +7,85 @@ if (Largura >= 500) {
   Altura = 500;
 }
 
+class Character{
+  constructor(position, speed){
+    this.position = position
+    this.speed = speed
+  }
+
+  getSpeed(){
+    return this.speed
+  }
+  
+  setPosition(position){
+      this.position = position;
+  }
+  setPositionX(x){
+      this.position.x = x;
+  }
+  setPositionY(y){
+      this.position.y = y;
+  }
+  getPosition(){
+    return this.position
+  }
+
+  moveLeft(){
+    if(this.getPosition().x >= 105) {
+      this.setPositionX(this.getPosition().x - this.getSpeed());
+    }
+  }
+
+  moveRight(){
+    if(this.getPosition().x <= 320) {
+      this.setPositionX(this.getPosition().x + this.getSpeed());
+    }
+  }
+
+  moveFoward(){
+      if(this.getPosition().y >= 30){
+        this.setPositionY(this.getPosition().y - this.getSpeed());
+      }
+  }
+
+  moveBackward(){
+    if(this.getPosition().y <= 370){
+      this.setPositionY(this.getPosition().y + this.getSpeed());
+    }
+  }
+
+}
+
+class  Player extends Character{
+  constructor(position, score, lifes, speed){
+    super(position, speed);
+    this.score = score;
+    this.lifes = lifes;
+  }
+
+  getLifes() {return this.lifes;}
+  getScore(){return this.score;}
+
+  setLifes(lifes) {this.lifes = lifes;}
+  setScore(score) {this.score = score;}
+  
+  decreaseLife(){
+    this.setLifes(this.getLifes()-1);
+  }
+  increaseLife(qtd = 5){
+    this.setLifes(this.getLifes()+qtd);
+  }
+
+  increaseScore(){
+    this.setScore(this.getScore() + 5);
+  }
+
+  draw(){
+    personagem.desenha(this.position.x, this.position.y);
+  }
+}
+
+
 class Game {
   constructor(dificult, currentState) {
     this.dificult = dificult;
@@ -103,16 +182,9 @@ var teclas = {},
       maleta.desenha(this.x, this.y);
     },
   },
-  jogador = {
-    score: 0,
-    vidas: 3,
-    x: 250,
-    y: 350,
-    speed: 5,
-    desenho: function () {
-      personagem.desenha(this.x, this.y);
-    },
-  },
+
+  player = new Player( {x: 250, y: 350}, 0, 3, 5)
+
   bala = {
     x: 250,
     y: -500,
@@ -186,25 +258,25 @@ function desenho() {
   } else if (game.getCurrentState() == estados.jogando) {
     contexto.font = "20px arial ";
     contexto.fillStyle = "black";
-    contexto.fillText("Score: " + jogador.score, 10, 20);
+    contexto.fillText("Score: " + player.getScore(), 10, 20);
     contexto.fillText("Dificuldade: " + game.dificult, 200, 20);
-    contexto.fillText("Vidas: " + jogador.vidas, 120, 20);
+    contexto.fillText("Vidas: " + player.getLifes(), 120, 20);
     moveinimigo();
     bala.tiro1();
     movejogador();
     inimigo.desenho();
-    jogador.desenho();
+    player.draw();
     dificuldade();
   } else if (game.getCurrentState() == estados.desafio) {
     vidaExtra.desenho(); //VidaExtra();
     chefao.desenho();
     vidaChefao.desenho();
-    jogador.desenho();
+    player.draw();
     bala.tiro1();
     movejogador();
     moveChefao();
     balaChefao.tiro1();
-    contexto.fillText("Vidas: " + jogador.vidas, 220, 500);
+    contexto.fillText("Vidas: " + player.getLifes(), 220, 500);
   }
 }
 function roda() {
@@ -227,23 +299,23 @@ document.addEventListener(
   false
 );
 function movejogador() {
-  if (38 in teclas && jogador.y >= 30) {
-    jogador.y -= jogador.speed;
+  if (38 in teclas) {
+    player.moveFoward();
   }
-  if (40 in teclas && jogador.y <= 370) {
-    jogador.y += jogador.speed;
+  if (40 in teclas) {
+    player.moveBackward();
   }
-  if (37 in teclas && jogador.x >= 105) {
-    jogador.x -= jogador.speed;
+  if (37 in teclas) {
+    player.moveLeft();
   }
-  if (39 in teclas && jogador.x <= 320) {
-    jogador.x += jogador.speed;
+  if (39 in teclas) {
+    player.moveRight();
   }
   if (32 in teclas) {
     bala.y -= bala.speed;
     if (bala.y <= -50) {
-      bala.x = jogador.x + 37.5;
-      bala.y = jogador.y;
+      bala.x = player.getPosition().x + 37.5;
+      bala.y = player.getPosition().y;
     }
   }
   if (bala.y > -50) {
@@ -251,13 +323,13 @@ function movejogador() {
   }
 
   //limita as vidas
-  if (jogador.vidas < 0) {
-    pontos = jogador.score;
+  if (player.getLifes() < 0) {
+    pontos = player.getScore();
     vetor[ctd] = pontos;
     ctd += 1;
     game.setCurrentState(estados.perdeu);
-    jogador.vidas = 3;
-    jogador.score = 0;
+    player.setLifes(3);
+    player.setScore(0);
     vidaChefao.largura = 400;
     chefao.x = 250;
     chefao.y = 60;
@@ -303,16 +375,16 @@ function moveChefao() {
     vidaExtra.x = chefao.x + 10;
     // colisao do tiro do boss
     if (
-      balaChefao.y >= jogador.y &&
-      balaChefao.y - 22 <= jogador.y &&
-      balaChefao.x >= jogador.x &&
-      balaChefao.x <= jogador.x + 77
+      balaChefao.y >= player.getPosition().y &&
+      balaChefao.y - 22 <= player.getPosition().y &&
+      balaChefao.x >= player.getPosition().x &&
+      balaChefao.x <= player.getPosition().x + 77
     ) {
-      expl.desenha(jogador.x, jogador.y);
-      expl.desenha(jogador.x - 5, jogador.y + 10);
+      expl.desenha(player.getPosition().x, player.getPosition().y);
+      expl.desenha(player.getPosition().x - 5, player.getPosition().y + 10);
       balaChefao.y = chefao.y + 108;
       balaChefao.x = chefao.x + 35;
-      jogador.vidas -= 1;
+      player.decreaseLife();
     }
 
     // colisao do tiro do jogador no boss
@@ -335,18 +407,18 @@ function moveChefao() {
     chefao.y = -300;
     balaChefao.y = chefao.y;
     if (
-      jogador.y + 56 >= vidaExtra.y &&
-      jogador.y - 55 <= vidaExtra.y &&
-      jogador.x >= vidaExtra.x - 75 &&
-      jogador.x <= vidaExtra.x + 60
+      player.getPosition().y + 56 >= vidaExtra.y &&
+      player.getPosition().y - 55 <= vidaExtra.y &&
+      player.getPosition().x >= vidaExtra.x - 75 &&
+      player.getPosition().x <= vidaExtra.x + 60
     ) {
-      jogador.vidas += 5;
+      player.increaseLife();
       vidaExtra.y = 560;
-      jogador.score += 5;
+      player.increaseScore();
       game.setCurrentState(estados.jogando);
     }
     if (vidaExtra.y > 550) {
-      jogador.score += 5;
+      player.increaseScore();
       game.setCurrentState(estados.jogando);
     }
   }
@@ -381,13 +453,13 @@ function moveinimigo() {
 
   //colisao entre o jogador e o carro
   if (
-    jogador.y >= inimigo.y - 120 &&
-    jogador.y <= inimigo.y + 90 &&
-    jogador.x >= inimigo.x - 80 &&
-    jogador.x <= inimigo.x + 40
+    player.getPosition().y >= inimigo.y - 120 &&
+    player.getPosition().y <= inimigo.y + 90 &&
+    player.getPosition().x >= inimigo.x - 80 &&
+    player.getPosition().x <= inimigo.x + 40
   ) {
     expl.desenha(inimigo.x, inimigo.y);
-    jogador.vidas -= 1;
+    player.decreaseLife();
     inimigo.i = parseInt(4 * Math.random());
     inimigo.x = parseFloat(250 * Math.random() + 100);
     inimigo.y = -50;
@@ -404,54 +476,54 @@ function moveinimigo() {
     inimigo.i = parseInt(4 * Math.random());
     inimigo.x = parseFloat(250 * Math.random() + 100);
     inimigo.y = -50;
-    jogador.score += 5;
+    player.increaseScore();
     bala.y = -500;
   }
 }
 function dificuldade() {
-  if (jogador.score >= 0 && jogador.score < 95) {
+  if (player.getScore() >= 0 && player.getScore() < 95) {
     inimigo.speed = 1; //aumenta a velocidade do inimigo
     game.dificult = "Muito Fácil";
   }
-  if (jogador.score == 95) {
+  if (player.getScore() == 95) {
     balaChefao.y = chefao.y;
     balaChefao.x = chefao.x;
     game.setCurrentState(estados.desafio);
-  } else if (jogador.score > 100 && jogador.score <= 240) {
+  } else if (player.getScore() > 100 && player.getScore() <= 240) {
     inimigo.speed = 2;
     game.dificult = "Fácil";
   }
-  if (jogador.score == 240) {
+  if (player.getScore() == 240) {
     chefao.y = 60;
     balaChefao.y = chefao.y;
     balaChefao.x = chefao.x;
     vidaChefao.largura = 300;
     game.setCurrentState(estados.desafio);
-  } else if (jogador.score > 240 && jogador.score <= 720) {
+  } else if (player.getScore() > 240 && player.getScore() <= 720) {
     inimigo.speed = 4;
     game.dificult = "Médio";
   }
-  if (jogador.score == 720) {
+  if (player.getScore() == 720) {
     chefao.y = 60;
     balaChefao.y = chefao.y;
     balaChefao.x = chefao.x;
     vidaChefao.largura = 400;
     game.setCurrentState(estados.desafio);
-  } else if (jogador.score > 720 && jogador.score <= 1440) {
+  } else if (player.getScore() > 720 && player.getScore() <= 1440) {
     inimigo.speed = 6;
     game.dificult = "Difícil";
   }
-  if (jogador.score == 1440) {
+  if (player.getScore() == 1440) {
     chefao.y = 60;
     balaChefao.y = chefao.y;
     balaChefao.x = chefao.x;
     vidaChefao.largura = 500;
     game.setCurrentState(estados.desafio);
-  } else if (jogador.score > 1440) {
+  } else if (player.getScore() > 1440) {
     inimigo.speed = 8;
     game.dificult = "Muito Difícil";
   }
-  if (jogador.score == 2000) {
+  if (player.getScore() == 2000) {
     chefao.y = 60;
     balaChefao.y = chefao.y;
     balaChefao.x = chefao.x;
