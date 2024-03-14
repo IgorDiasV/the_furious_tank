@@ -85,6 +85,15 @@ class  Player extends Character{
   }
 }
 
+class Boss extends Character{
+  constructor(position, speed){
+    super(position, speed)
+  }
+
+  draw(){
+    bossD.desenha(this.position.x, this.position.y);
+  }
+}
 
 class Game {
   constructor(dificult, currentState) {
@@ -147,14 +156,9 @@ var teclas = {},
     perdeu: 2,
     desafio: 3,
   },
-  chefao = {
-    x: 250,
-    y: 60,
-    movimentacao: 2.5,
-    desenho: function () {
-      boss.desenha(this.x, this.y);
-    },
-  },
+
+  boss = new Boss({x:250, y:60}, 2.5)
+  
   vidaChefao = {
     x: 50,
     y: 10,
@@ -168,14 +172,14 @@ var teclas = {},
   },
   balaChefao = {
     x: 285,
-    y: chefao.y + 108,
+    y: boss.getPosition().y + 108,
     speed: 6,
     tiro1: function () {
       BalaBoss.desenha(this.x, this.y);
     },
   },
   vidaExtra = {
-    x: chefao.x,
+    x: boss.getPosition().x,
     y: -100,
     speed: 5,
     desenho: function () {
@@ -269,7 +273,7 @@ function desenho() {
     dificuldade();
   } else if (game.getCurrentState() == estados.desafio) {
     vidaExtra.desenho(); //VidaExtra();
-    chefao.desenho();
+    boss.draw();
     vidaChefao.desenho();
     player.draw();
     bala.tiro1();
@@ -331,8 +335,8 @@ function movejogador() {
     player.setLifes(3);
     player.setScore(0);
     vidaChefao.largura = 400;
-    chefao.x = 250;
-    chefao.y = 60;
+    boss.getPosition().x = 250;
+    boss.getPosition().y = 60;
     for (var i = 0; i < ctd; i++) {
       for (var j = 0; j < ctd; j++) {
         if (vetor[i] > vetor[j]) {
@@ -351,8 +355,8 @@ function moveChefao() {
     if (balaChefao.y < 550) {
       balaChefao.y += balaChefao.speed;
       if (balaChefao.y >= 530) {
-        balaChefao.x = chefao.x + 37.5;
-        balaChefao.y = chefao.y + 108;
+        balaChefao.x = boss.getPosition().x + 37.5;
+        balaChefao.y = boss.getPosition().y + 108;
       }
     }
     if (cont == 50) {
@@ -361,18 +365,18 @@ function moveChefao() {
       cont = 0;
     }
     if (sentido == 0) {
-      chefao.x -= chefao.movimentacao;
+      boss.moveLeft();
     } else if (sentido == 1) {
-      chefao.x += chefao.movimentacao;
+      boss.moveRight();
     }
-    if (chefao.x <= 100) {
+    if (boss.getPosition().x <= 100) {
       sentido = 1;
     }
-    if (chefao.x > 317) {
+    if (boss.getPosition().x > 317) {
       sentido = 0;
     }
-    vidaExtra.y = chefao.y + 5;
-    vidaExtra.x = chefao.x + 10;
+    vidaExtra.y = boss.getPosition().y + 5;
+    vidaExtra.x = boss.getPosition().x + 10;
     // colisao do tiro do boss
     if (
       balaChefao.y >= player.getPosition().y &&
@@ -382,20 +386,20 @@ function moveChefao() {
     ) {
       expl.desenha(player.getPosition().x, player.getPosition().y);
       expl.desenha(player.getPosition().x - 5, player.getPosition().y + 10);
-      balaChefao.y = chefao.y + 108;
-      balaChefao.x = chefao.x + 35;
+      balaChefao.y = boss.getPosition().y + 108;
+      balaChefao.x = boss.getPosition().x + 35;
       player.decreaseLife();
     }
 
     // colisao do tiro do jogador no boss
     if (
-      bala.y + 104 >= chefao.y &&
-      bala.y - 105 <= chefao.y &&
-      bala.x >= chefao.x &&
-      bala.x <= chefao.x + 83
+      bala.y + 104 >= boss.getPosition().y &&
+      bala.y - 105 <= boss.getPosition().y &&
+      bala.x >= boss.getPosition().x &&
+      bala.x <= boss.getPosition().x + 83
     ) {
-      expl.desenha(chefao.x, chefao.y);
-      expl.desenha(chefao.x - 5, chefao.y + 10);
+      expl.desenha(boss.getPosition().x, boss.getPosition().y);
+      expl.desenha(boss.getPosition().x - 5, boss.getPosition().y + 10);
       bala.y = -500;
       vidaChefao.largura -= 20;
     }
@@ -404,8 +408,8 @@ function moveChefao() {
   if (vidaChefao.largura < 1) {
     vidaExtra.y += vidaExtra.speed;
 
-    chefao.y = -300;
-    balaChefao.y = chefao.y;
+    boss.getPosition().y = -300;
+    balaChefao.y = boss.getPosition().y;
     if (
       player.getPosition().y + 56 >= vidaExtra.y &&
       player.getPosition().y - 55 <= vidaExtra.y &&
@@ -486,17 +490,17 @@ function dificuldade() {
     game.dificult = "Muito Fácil";
   }
   if (player.getScore() == 95) {
-    balaChefao.y = chefao.y;
-    balaChefao.x = chefao.x;
+    balaChefao.y = boss.getPosition().y;
+    balaChefao.x = boss.getPosition().x;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 100 && player.getScore() <= 240) {
     inimigo.speed = 2;
     game.dificult = "Fácil";
   }
   if (player.getScore() == 240) {
-    chefao.y = 60;
-    balaChefao.y = chefao.y;
-    balaChefao.x = chefao.x;
+    boss.getPosition().y = 60;
+    balaChefao.y = boss.getPosition().y;
+    balaChefao.x = boss.getPosition().x;
     vidaChefao.largura = 300;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 240 && player.getScore() <= 720) {
@@ -504,9 +508,9 @@ function dificuldade() {
     game.dificult = "Médio";
   }
   if (player.getScore() == 720) {
-    chefao.y = 60;
-    balaChefao.y = chefao.y;
-    balaChefao.x = chefao.x;
+    boss.getPosition().y = 60;
+    balaChefao.y = boss.getPosition().y;
+    balaChefao.x = boss.getPosition().x;
     vidaChefao.largura = 400;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 720 && player.getScore() <= 1440) {
@@ -514,9 +518,9 @@ function dificuldade() {
     game.dificult = "Difícil";
   }
   if (player.getScore() == 1440) {
-    chefao.y = 60;
-    balaChefao.y = chefao.y;
-    balaChefao.x = chefao.x;
+    boss.getPosition().y = 60;
+    balaChefao.y = boss.getPosition().y;
+    balaChefao.x = boss.getPosition().x;
     vidaChefao.largura = 500;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 1440) {
@@ -524,9 +528,9 @@ function dificuldade() {
     game.dificult = "Muito Difícil";
   }
   if (player.getScore() == 2000) {
-    chefao.y = 60;
-    balaChefao.y = chefao.y;
-    balaChefao.x = chefao.x;
+    boss.getPosition().y = 60;
+    balaChefao.y = boss.getPosition().y;
+    balaChefao.x = boss.getPosition().x;
     vidaChefao.largura = 600;
     game.setCurrentState(estados.desafio);
   }
