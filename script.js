@@ -7,7 +7,7 @@ if (Largura >= 500) {
   Altura = 500;
 }
 
-class Character{
+class GameObject {
   constructor(position, speed){
     this.position = position
     this.speed = speed
@@ -56,7 +56,7 @@ class Character{
 
 }
 
-class  Player extends Character{
+class  Player extends GameObject {
   constructor(position, score, lifes, speed){
     super(position, speed);
     this.score = score;
@@ -85,7 +85,7 @@ class  Player extends Character{
   }
 }
 
-class Boss extends Character{
+class Boss extends GameObject {
   constructor(position, speed){
     super(position, speed)
   }
