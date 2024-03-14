@@ -7,10 +7,11 @@ if (Largura >= 500) {
   Altura = 500;
 }
 
-class GameObject {
-  constructor(position, speed){
-    this.position = position
-    this.speed = speed
+class GameObject{
+  constructor(position, speed, sprite){
+    this.position = position;
+    this.speed = speed;
+    this.sprite = sprite;
   }
 
   getSpeed(){
@@ -54,11 +55,25 @@ class GameObject {
     }
   }
 
+  draw(){
+    this.sprite.desenha(this.position.x, this.position.y);
+  }
+
 }
 
-class  Player extends GameObject {
-  constructor(position, score, lifes, speed){
-    super(position, speed);
+class Bullet extends GameObject{
+  constructor(posistion, speed, sprite){
+    super(posistion, speed, sprite);
+  }
+
+  moveFoward(){
+    this.setPositionY(this.getPosition().y - this.getSpeed());
+  }
+}
+
+class  Player extends GameObject{
+  constructor(position, score, lifes, speed, sprite){
+    super(position, speed, sprite);
     this.score = score;
     this.lifes = lifes;
   }
@@ -79,19 +94,11 @@ class  Player extends GameObject {
   increaseScore(){
     this.setScore(this.getScore() + 5);
   }
-
-  draw(){
-    personagem.desenha(this.position.x, this.position.y);
-  }
 }
 
-class Boss extends GameObject {
-  constructor(position, speed){
-    super(position, speed)
-  }
-
-  draw(){
-    bossD.desenha(this.position.x, this.position.y);
+class Boss extends GameObject{
+  constructor(position, speed, sprite){
+    super(position, speed, sprite)
   }
 }
 
@@ -157,8 +164,8 @@ var teclas = {},
     desafio: 3,
   },
 
-  boss = new Boss({x:250, y:60}, 2.5)
-  
+  boss = new Boss({x:250, y:60}, 2.5, bossD)
+
   vidaChefao = {
     x: 50,
     y: 10,
@@ -187,16 +194,8 @@ var teclas = {},
     },
   },
 
-  player = new Player( {x: 250, y: 350}, 0, 3, 5)
-
-  bala = {
-    x: 250,
-    y: -500,
-    speed: 10,
-    tiro1: function () {
-      Bala.desenha(this.x, this.y);
-    },
-  },
+  player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem)
+  bulletPlayer = new Bullet({x: 250, y: -500}, 10, Bala)
   inimigo = {
     x: 250,
     y: 0,
@@ -266,7 +265,7 @@ function desenho() {
     contexto.fillText("Dificuldade: " + game.dificult, 200, 20);
     contexto.fillText("Vidas: " + player.getLifes(), 120, 20);
     moveinimigo();
-    bala.tiro1();
+    bulletPlayer.draw();
     movejogador();
     inimigo.desenho();
     player.draw();
@@ -276,7 +275,7 @@ function desenho() {
     boss.draw();
     vidaChefao.desenho();
     player.draw();
-    bala.tiro1();
+    bulletPlayer.draw();
     movejogador();
     moveChefao();
     balaChefao.tiro1();
@@ -316,14 +315,14 @@ function movejogador() {
     player.moveRight();
   }
   if (32 in teclas) {
-    bala.y -= bala.speed;
-    if (bala.y <= -50) {
-      bala.x = player.getPosition().x + 37.5;
-      bala.y = player.getPosition().y;
+    bulletPlayer.moveFoward();
+    if (bulletPlayer.getPosition().y <= -50) {
+      bulletPlayer.setPositionX(player.getPosition().x + 37.5);
+      bulletPlayer.setPositionY(player.getPosition().y);
     }
   }
-  if (bala.y > -50) {
-    bala.y -= bala.speed;
+  if (bulletPlayer.getPosition().y > -50) {
+    bulletPlayer.moveFoward();
   }
 
   //limita as vidas
@@ -393,14 +392,14 @@ function moveChefao() {
 
     // colisao do tiro do jogador no boss
     if (
-      bala.y + 104 >= boss.getPosition().y &&
-      bala.y - 105 <= boss.getPosition().y &&
-      bala.x >= boss.getPosition().x &&
-      bala.x <= boss.getPosition().x + 83
+      bulletPlayer.getPosition().y + 104 >= boss.getPosition().y &&
+      bulletPlayer.getPosition().y - 105 <= boss.getPosition().y &&
+      bulletPlayer.getPosition().x >= boss.getPosition().x &&
+      bulletPlayer.getPosition().x <= boss.getPosition().x + 83
     ) {
       expl.desenha(boss.getPosition().x, boss.getPosition().y);
       expl.desenha(boss.getPosition().x - 5, boss.getPosition().y + 10);
-      bala.y = -500;
+      bulletPlayer.getPosition().y = -500;
       vidaChefao.largura -= 20;
     }
   }
@@ -470,10 +469,10 @@ function moveinimigo() {
   }
   //colisao entre o tiro e o carro
   if (
-    bala.y + 104 >= inimigo.y &&
-    bala.y - 105 <= inimigo.y &&
-    bala.x >= inimigo.x - 8 &&
-    bala.x <= inimigo.x + 58
+    bulletPlayer.getPosition().y + 104 >= inimigo.y &&
+    bulletPlayer.getPosition().y - 105 <= inimigo.y &&
+    bulletPlayer.getPosition().x >= inimigo.x - 8 &&
+    bulletPlayer.getPosition().x <= inimigo.x + 58
   ) {
     expl.desenha(inimigo.x, inimigo.y);
     expl.desenha(inimigo.x - 5, inimigo.y + 10);
@@ -481,7 +480,7 @@ function moveinimigo() {
     inimigo.x = parseFloat(250 * Math.random() + 100);
     inimigo.y = -50;
     player.increaseScore();
-    bala.y = -500;
+    bulletPlayer.getPosition().y = -500;
   }
 }
 function dificuldade() {
