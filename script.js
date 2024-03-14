@@ -69,6 +69,9 @@ class Bullet extends GameObject{
   moveFoward(){
     this.setPositionY(this.getPosition().y - this.getSpeed());
   }
+  moveBackward(){
+    this.setPositionY(this.getPosition().y + this.getSpeed());
+  }
 }
 
 class  Player extends GameObject{
@@ -177,14 +180,7 @@ var teclas = {},
       contexto.fillRect(this.x, this.y, this.largura, this.altura);
     },
   },
-  balaChefao = {
-    x: 285,
-    y: boss.getPosition().y + 108,
-    speed: 6,
-    tiro1: function () {
-      BalaBoss.desenha(this.x, this.y);
-    },
-  },
+  bulletBoss =  new Bullet({x:285, y: boss.getPosition().y + 108}, 6, BalaBoss)
   vidaExtra = {
     x: boss.getPosition().x,
     y: -100,
@@ -278,7 +274,7 @@ function desenho() {
     bulletPlayer.draw();
     movejogador();
     moveChefao();
-    balaChefao.tiro1();
+    bulletBoss.draw();
     contexto.fillText("Vidas: " + player.getLifes(), 220, 500);
   }
 }
@@ -351,11 +347,11 @@ function moveChefao() {
   if (vidaChefao.largura > 0) {
     cont += 1;
     //tiro aleatorio
-    if (balaChefao.y < 550) {
-      balaChefao.y += balaChefao.speed;
-      if (balaChefao.y >= 530) {
-        balaChefao.x = boss.getPosition().x + 37.5;
-        balaChefao.y = boss.getPosition().y + 108;
+    if (bulletBoss.getPosition().y < 550) {
+      bulletBoss.moveBackward();
+      if (bulletBoss.getPosition().y >= 530) {
+        bulletBoss.setPositionX(boss.getPosition().x + 37.5);
+        bulletBoss.setPositionY(boss.getPosition().y + 108);
       }
     }
     if (cont == 50) {
@@ -378,15 +374,15 @@ function moveChefao() {
     vidaExtra.x = boss.getPosition().x + 10;
     // colisao do tiro do boss
     if (
-      balaChefao.y >= player.getPosition().y &&
-      balaChefao.y - 22 <= player.getPosition().y &&
-      balaChefao.x >= player.getPosition().x &&
-      balaChefao.x <= player.getPosition().x + 77
+      bulletBoss.getPosition().y >= player.getPosition().y &&
+      bulletBoss.getPosition().y - 22 <= player.getPosition().y &&
+      bulletBoss.getPosition().x >= player.getPosition().x &&
+      bulletBoss.getPosition().x <= player.getPosition().x + 77
     ) {
       expl.desenha(player.getPosition().x, player.getPosition().y);
       expl.desenha(player.getPosition().x - 5, player.getPosition().y + 10);
-      balaChefao.y = boss.getPosition().y + 108;
-      balaChefao.x = boss.getPosition().x + 35;
+      bulletBoss.getPosition().y = boss.getPosition().y + 108;
+      bulletBoss.getPosition().x = boss.getPosition().x + 35;
       player.decreaseLife();
     }
 
@@ -408,7 +404,7 @@ function moveChefao() {
     vidaExtra.y += vidaExtra.speed;
 
     boss.getPosition().y = -300;
-    balaChefao.y = boss.getPosition().y;
+    bulletBoss.setPositionY(boss.getPosition().y);
     if (
       player.getPosition().y + 56 >= vidaExtra.y &&
       player.getPosition().y - 55 <= vidaExtra.y &&
@@ -489,8 +485,8 @@ function dificuldade() {
     game.dificult = "Muito Fácil";
   }
   if (player.getScore() == 95) {
-    balaChefao.y = boss.getPosition().y;
-    balaChefao.x = boss.getPosition().x;
+    bulletBoss.setPositionY(boss.getPosition().y);
+    bulletBoss.setPositionX(boss.getPosition().x);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 100 && player.getScore() <= 240) {
     inimigo.speed = 2;
@@ -498,8 +494,8 @@ function dificuldade() {
   }
   if (player.getScore() == 240) {
     boss.getPosition().y = 60;
-    balaChefao.y = boss.getPosition().y;
-    balaChefao.x = boss.getPosition().x;
+    bulletBoss.setPositionY(boss.getPosition().y);
+    bulletBoss.setPositionX(boss.getPosition().x)
     vidaChefao.largura = 300;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 240 && player.getScore() <= 720) {
@@ -508,8 +504,8 @@ function dificuldade() {
   }
   if (player.getScore() == 720) {
     boss.getPosition().y = 60;
-    balaChefao.y = boss.getPosition().y;
-    balaChefao.x = boss.getPosition().x;
+    bulletBoss.setPositionY(boss.getPosition().y);
+    bulletBoss.setPositionX(boss.getPosition().x);
     vidaChefao.largura = 400;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 720 && player.getScore() <= 1440) {
@@ -518,8 +514,8 @@ function dificuldade() {
   }
   if (player.getScore() == 1440) {
     boss.getPosition().y = 60;
-    balaChefao.y = boss.getPosition().y;
-    balaChefao.x = boss.getPosition().x;
+    bulletBoss.setPositionY(boss.getPosition().y);
+    bulletBoss.setPositionX(boss.getPosition().x);
     vidaChefao.largura = 500;
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 1440) {
@@ -528,8 +524,8 @@ function dificuldade() {
   }
   if (player.getScore() == 2000) {
     boss.getPosition().y = 60;
-    balaChefao.y = boss.getPosition().y;
-    balaChefao.x = boss.getPosition().x;
+    bulletBoss.setPositionY(boss.getPosition().y);
+    bulletBoss.setPositionX(boss.getPosition().x);
     vidaChefao.largura = 600;
     game.setCurrentState(estados.desafio);
   }
