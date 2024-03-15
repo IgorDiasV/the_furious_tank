@@ -99,10 +99,40 @@ class  Player extends GameObject{
   }
 }
 
+class LifeBar extends GameObject{
+  constructor(position, speed, width, height, color = "red"){
+    super(position, speed)
+    this.width = width;
+    this.height = height;
+    this.color = color;
+  }
+  draw(){
+    contexto.fillStyle = this.color;
+    contexto.fillRect(this.getPosition().x, this.getPosition().y, this.width, this.height);
+  }
+
+}
+
 class Boss extends GameObject{
   constructor(position, speed, sprite){
     super(position, speed, sprite)
+    this.lifeBar = new LifeBar({x:50, y:10}, 0, 200, 25)
   }
+
+  setBarLife(life){
+    this.lifeBar.width = life;
+  }
+
+  hasLife(){
+    if(this.lifeBar.width > 0) return true;
+    return false;
+  }
+
+  decreaseLife(){
+    this.lifeBar.width -= 20
+  }
+
+
 }
 
 class Game {
@@ -138,6 +168,7 @@ class Game {
     }
   }
 }
+
 //definindo suas medidas
 canvas.width = Largura;
 canvas.height = Altura;
@@ -169,17 +200,6 @@ var teclas = {},
 
   boss = new Boss({x:250, y:60}, 2.5, bossD)
 
-  vidaChefao = {
-    x: 50,
-    y: 10,
-    largura: 200,
-    altura: 25,
-    cor: "red",
-    desenho: function () {
-      contexto.fillStyle = this.cor;
-      contexto.fillRect(this.x, this.y, this.largura, this.altura);
-    },
-  },
   bulletBoss =  new Bullet({x:285, y: boss.getPosition().y + 108}, 6, BalaBoss)
   vidaExtra = {
     x: boss.getPosition().x,
@@ -269,7 +289,7 @@ function desenho() {
   } else if (game.getCurrentState() == estados.desafio) {
     vidaExtra.desenho(); //VidaExtra();
     boss.draw();
-    vidaChefao.desenho();
+    boss.lifeBar.draw()
     player.draw();
     bulletPlayer.draw();
     movejogador();
@@ -329,7 +349,7 @@ function movejogador() {
     game.setCurrentState(estados.perdeu);
     player.setLifes(3);
     player.setScore(0);
-    vidaChefao.largura = 400;
+    boss.setBarLife(400);
     boss.getPosition().x = 250;
     boss.getPosition().y = 60;
     for (var i = 0; i < ctd; i++) {
@@ -344,7 +364,7 @@ function movejogador() {
   }
 }
 function moveChefao() {
-  if (vidaChefao.largura > 0) {
+  if (boss.hasLife()) {
     cont += 1;
     //tiro aleatorio
     if (bulletBoss.getPosition().y < 550) {
@@ -396,11 +416,11 @@ function moveChefao() {
       expl.desenha(boss.getPosition().x, boss.getPosition().y);
       expl.desenha(boss.getPosition().x - 5, boss.getPosition().y + 10);
       bulletPlayer.getPosition().y = -500;
-      vidaChefao.largura -= 20;
+      boss.decreaseLife();
     }
   }
 
-  if (vidaChefao.largura < 1) {
+  if (!boss.hasLife()) {
     vidaExtra.y += vidaExtra.speed;
 
     boss.getPosition().y = -300;
@@ -496,7 +516,7 @@ function dificuldade() {
     boss.getPosition().y = 60;
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x)
-    vidaChefao.largura = 300;
+    boss.setBarLife(300);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 240 && player.getScore() <= 720) {
     inimigo.speed = 4;
@@ -506,7 +526,7 @@ function dificuldade() {
     boss.getPosition().y = 60;
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
-    vidaChefao.largura = 400;
+    boss.setBarLife(400);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 720 && player.getScore() <= 1440) {
     inimigo.speed = 6;
@@ -516,7 +536,7 @@ function dificuldade() {
     boss.getPosition().y = 60;
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
-    vidaChefao.largura = 500;
+    boss.setBarLife(500);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 1440) {
     inimigo.speed = 8;
@@ -526,7 +546,7 @@ function dificuldade() {
     boss.getPosition().y = 60;
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
-    vidaChefao.largura = 600;
+    boss.setBarLife(600);
     game.setCurrentState(estados.desafio);
   }
 }
