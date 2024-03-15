@@ -50,9 +50,7 @@ class GameObject{
   }
 
   moveBackward(){
-    if(this.getPosition().y <= 370){
       this.setPositionY(this.getPosition().y + this.getSpeed());
-    }
   }
 
   draw(){
@@ -97,6 +95,12 @@ class  Player extends GameObject{
   increaseScore(){
     this.setScore(this.getScore() + 5);
   }
+  moveBackward(){
+    if(this.getPosition().y <= 370){
+      this.setPositionY(this.getPosition().y + this.getSpeed());
+    }
+  }
+
 }
 
 class LifeBar extends GameObject{
@@ -201,15 +205,7 @@ var teclas = {},
   boss = new Boss({x:250, y:60}, 2.5, bossD)
 
   bulletBoss =  new Bullet({x:285, y: boss.getPosition().y + 108}, 6, BalaBoss)
-  vidaExtra = {
-    x: boss.getPosition().x,
-    y: -100,
-    speed: 5,
-    desenho: function () {
-      maleta.desenha(this.x, this.y);
-    },
-  },
-
+  extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta)
   player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem)
   bulletPlayer = new Bullet({x: 250, y: -500}, 10, Bala)
   inimigo = {
@@ -287,7 +283,7 @@ function desenho() {
     player.draw();
     dificuldade();
   } else if (game.getCurrentState() == estados.desafio) {
-    vidaExtra.desenho(); //VidaExtra();
+    extraLife.draw(); //VidaExtra();
     boss.draw();
     boss.lifeBar.draw()
     player.draw();
@@ -390,8 +386,8 @@ function moveChefao() {
     if (boss.getPosition().x > 317) {
       sentido = 0;
     }
-    vidaExtra.y = boss.getPosition().y + 5;
-    vidaExtra.x = boss.getPosition().x + 10;
+    extraLife.setPositionY(boss.getPosition().y + 5);
+    extraLife.setPositionX(boss.getPosition().x + 10);
     // colisao do tiro do boss
     if (
       bulletBoss.getPosition().y >= player.getPosition().y &&
@@ -421,22 +417,22 @@ function moveChefao() {
   }
 
   if (!boss.hasLife()) {
-    vidaExtra.y += vidaExtra.speed;
+    extraLife.moveBackward();
 
     boss.getPosition().y = -300;
     bulletBoss.setPositionY(boss.getPosition().y);
     if (
-      player.getPosition().y + 56 >= vidaExtra.y &&
-      player.getPosition().y - 55 <= vidaExtra.y &&
-      player.getPosition().x >= vidaExtra.x - 75 &&
-      player.getPosition().x <= vidaExtra.x + 60
+      player.getPosition().y + 56 >= extraLife.getPosition().y &&
+      player.getPosition().y - 55 <= extraLife.getPosition().y &&
+      player.getPosition().x >= extraLife.getPosition().x - 75 &&
+      player.getPosition().x <= extraLife.getPosition().x + 60
     ) {
       player.increaseLife();
-      vidaExtra.y = 560;
+      extraLife.setPositionY(500);
       player.increaseScore();
       game.setCurrentState(estados.jogando);
     }
-    if (vidaExtra.y > 550) {
+    if (extraLife.getPosition().y > 550) {
       player.increaseScore();
       game.setCurrentState(estados.jogando);
     }
