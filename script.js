@@ -17,7 +17,9 @@ class GameObject{
   getSpeed(){
     return this.speed
   }
-  
+  setSpeed(speed){
+    this.speed = speed
+  }
   setPosition(position){
       this.position = position;
   }
@@ -139,6 +141,25 @@ class Boss extends GameObject{
 
 }
 
+class Enemy extends GameObject{
+  constructor(position, speed, sprites){
+    super(position, speed, sprites[0])
+    this.index = 0;
+    this.sprites = sprites
+  }
+  changeCar(){
+    this.index = parseInt(Math.random() * this.sprites.length);
+  }
+  reset(){
+    this.changeCar()
+    this.setPositionX(parseFloat(250 * Math.random() + 100));
+    this.setPositionY(-50);
+  }
+  draw(){
+    this.sprites[this.index].desenha(this.position.x, this.position.y)
+  }
+}
+
 class Game {
   constructor(dificult, currentState) {
     this.dificult = dificult;
@@ -208,33 +229,9 @@ var teclas = {},
   extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta)
   player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem)
   bulletPlayer = new Bullet({x: 250, y: -500}, 10, Bala)
-  inimigo = {
-    x: 250,
-    y: 0,
-    largura: 50,
-    altura: 50,
-    movimentacao: 2.5,
-    i: 0,
-    speed: 2,
-    desenho: function () {
-      switch (this.i) {
-        case 0:
-          audi.desenha(this.x, this.y);
-          break;
-        case 1:
-          carroPreto.desenha(this.x, this.y);
-          break;
-        case 2:
-          taxi.desenha(this.x, this.y);
-          break;
-        case 3:
-          carro.desenha(this.x, this.y);
-          break;
-      }
-    },
-  };
+  enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
 
-// muda de estado com click
+  // muda de estado com click
 function clique(click) {
   if (game.getCurrentState() == estados.jogar) {
     game.setCurrentState(estados.jogando);
@@ -279,7 +276,7 @@ function desenho() {
     moveinimigo();
     bulletPlayer.draw();
     movejogador();
-    inimigo.desenho();
+    enemy.draw();
     player.draw();
     dificuldade();
   } else if (game.getCurrentState() == estados.desafio) {
@@ -439,14 +436,11 @@ function moveChefao() {
   }
 }
 function moveinimigo() {
-  if (inimigo.y < 500) {
-    inimigo.y += inimigo.speed;
+  if (enemy.getPosition().y < 500) {
+    enemy.moveBackward();
   }
-  if (inimigo.y >= 500) {
-    inimigo.i = parseInt(Math.random() * 4);
-    inimigo.x = parseFloat(250 * Math.random() + 100);
-    inimigo.y = -50;
-    inimigo.y += inimigo.speed;
+  if (enemy.getPosition().y >= 500) {
+    enemy.reset();
   }
   contc += 1;
   if (contc == 50) {
@@ -455,49 +449,38 @@ function moveinimigo() {
     contc = 0;
   }
   if (sentidoc == 0) {
-    inimigo.x -= inimigo.movimentacao;
+    enemy.moveLeft();
   } else if (sentidoc == 1) {
-    inimigo.x += inimigo.movimentacao;
+    enemy.moveRight()
   }
-  if (inimigo.x <= 100) {
-    sentidoc = 1;
-  }
-  if (inimigo.x > 317) {
-    sentidoc = 0;
-  }
-
   //colisao entre o jogador e o carro
   if (
-    player.getPosition().y >= inimigo.y - 120 &&
-    player.getPosition().y <= inimigo.y + 90 &&
-    player.getPosition().x >= inimigo.x - 80 &&
-    player.getPosition().x <= inimigo.x + 40
+    player.getPosition().y >= enemy.getPosition().y - 120 &&
+    player.getPosition().y <= enemy.getPosition().y + 90 &&
+    player.getPosition().x >= enemy.getPosition().x - 80 &&
+    player.getPosition().x <= enemy.getPosition().x + 40
   ) {
-    expl.desenha(inimigo.x, inimigo.y);
+    expl.desenha(enemy.getPosition().x, enemy.getPosition().y);
     player.decreaseLife();
-    inimigo.i = parseInt(4 * Math.random());
-    inimigo.x = parseFloat(250 * Math.random() + 100);
-    inimigo.y = -50;
+    enemy.reset()
   }
   //colisao entre o tiro e o carro
   if (
-    bulletPlayer.getPosition().y + 104 >= inimigo.y &&
-    bulletPlayer.getPosition().y - 105 <= inimigo.y &&
-    bulletPlayer.getPosition().x >= inimigo.x - 8 &&
-    bulletPlayer.getPosition().x <= inimigo.x + 58
+    bulletPlayer.getPosition().y + 104 >= enemy.getPosition().y &&
+    bulletPlayer.getPosition().y - 105 <= enemy.getPosition().y &&
+    bulletPlayer.getPosition().x >= enemy.getPosition().x - 8 &&
+    bulletPlayer.getPosition().x <= enemy.getPosition().x + 58
   ) {
-    expl.desenha(inimigo.x, inimigo.y);
-    expl.desenha(inimigo.x - 5, inimigo.y + 10);
-    inimigo.i = parseInt(4 * Math.random());
-    inimigo.x = parseFloat(250 * Math.random() + 100);
-    inimigo.y = -50;
+    expl.desenha(enemy.getPosition().x, enemy.getPosition().y);
+    expl.desenha(enemy.getPosition().x - 5, enemy.getPosition().y + 10);
+    enemy.reset()
     player.increaseScore();
     bulletPlayer.getPosition().y = -500;
   }
 }
 function dificuldade() {
   if (player.getScore() >= 0 && player.getScore() < 95) {
-    inimigo.speed = 1; //aumenta a velocidade do inimigo
+    enemy.setSpeed(1);
     game.dificult = "Muito Fácil";
   }
   if (player.getScore() == 95) {
@@ -505,7 +488,7 @@ function dificuldade() {
     bulletBoss.setPositionX(boss.getPosition().x);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 100 && player.getScore() <= 240) {
-    inimigo.speed = 2;
+    enemy.setSpeed(2);
     game.dificult = "Fácil";
   }
   if (player.getScore() == 240) {
@@ -515,7 +498,7 @@ function dificuldade() {
     boss.setBarLife(300);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 240 && player.getScore() <= 720) {
-    inimigo.speed = 4;
+    enemy.setSpeed(4);
     game.dificult = "Médio";
   }
   if (player.getScore() == 720) {
@@ -525,7 +508,7 @@ function dificuldade() {
     boss.setBarLife(400);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 720 && player.getScore() <= 1440) {
-    inimigo.speed = 6;
+    enemy.setSpeed(6)
     game.dificult = "Difícil";
   }
   if (player.getScore() == 1440) {
@@ -535,7 +518,7 @@ function dificuldade() {
     boss.setBarLife(500);
     game.setCurrentState(estados.desafio);
   } else if (player.getScore() > 1440) {
-    inimigo.speed = 8;
+    enemy.setSpeed(8);
     game.dificult = "Muito Difícil";
   }
   if (player.getScore() == 2000) {
