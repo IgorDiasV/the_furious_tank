@@ -161,9 +161,16 @@ class Enemy extends GameObject{
 }
 
 class Game {
+  static states = {
+                    play: 0,
+                    playing: 1,
+                    lost: 2,
+                    challenge: 3,
+                  }
   constructor(dificult, currentState) {
     this.dificult = dificult;
     this.currentState = currentState
+    this.changeState = this.changeState.bind(this);
   }
   getCurrentState(){
     return this.currentState
@@ -192,6 +199,40 @@ class Game {
       contexto.fillRect(305, i * 30 - 5, 4, 20);
     }
   }
+
+  lost(){
+    this.setCurrentState(Game.states.lost);
+  }
+
+  playing(){
+    this.setCurrentState(Game.states.playing);
+  }
+
+  challenge(){
+    this.setCurrentState(Game.states.challenge);
+  }
+
+  isStatePlay(){
+    return this.getCurrentState() == Game.states.play;
+  }
+
+  isStateLost(){
+    return this.getCurrentState() == Game.states.lost;
+  }
+
+  isStatePlaying(){
+    return this.getCurrentState() == Game.states.playing;
+  }
+
+  isStateChallenge(){
+    return this.getCurrentState() == Game.states.challenge;
+  }
+
+  changeState(){
+    if (this.isStatePlay() || this.isStateLost()) {
+      this.setCurrentState(Game.states.playing);
+    }
+  }
 }
 
 //definindo suas medidas
@@ -216,44 +257,29 @@ var teclas = {},
   contc = 0,
   record = "",
   aux = 0,
-  estados = {
-    jogar: 0,
-    jogando: 1,
-    perdeu: 2,
-    desafio: 3,
-  },
 
-  boss = new Boss({x:250, y:60}, 2.5, bossD)
+boss = new Boss({x:250, y:60}, 2.5, bossD);
+bulletBoss =  new Bullet({x:285, y: boss.getPosition().y + 108}, 6, BalaBoss);
+extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta);
+player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem);
+bulletPlayer = new Bullet({x: 250, y: -500}, 10, Bala);
+enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
+let game = new Game("Muito Fácil", Game.states.play);
 
-  bulletBoss =  new Bullet({x:285, y: boss.getPosition().y + 108}, 6, BalaBoss)
-  extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta)
-  player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem)
-  bulletPlayer = new Bullet({x: 250, y: -500}, 10, Bala)
-  enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
-
-  // muda de estado com click
-function clique(click) {
-  if (game.getCurrentState() == estados.jogar) {
-    game.setCurrentState(estados.jogando);
-  }
-  if (game.getCurrentState() == estados.perdeu) {
-    game.setCurrentState(estados.jogando);
-  }
-}
 function desenho() {
   contexto.clearRect(0, 0, canvas.width, canvas.height);
 
   game.drawBackground();
 
   //açoes que ocorrem em cada estado
-  if (game.getCurrentState() == estados.jogar) {
+  if (game.isStatePlay()) {
     fundo.desenha(0, 0);
     contexto.fillStyle = "green";
     contexto.fillRect(Largura / 2 - 100, 100, 200, 100);
     contexto.font = "28px arial ";
     contexto.fillStyle = "white";
     contexto.fillText("START", 210, 160);
-  } else if (game.getCurrentState() == estados.perdeu) {
+  } else if (game.isStateLost()) {
     contexto.fillStyle = "#669999";
     contexto.fillRect(0, 0, 500, 500);
     contexto.font = "32px arial ";
@@ -267,7 +293,7 @@ function desenho() {
     contexto.font = "28px Engravers MT ";
     contexto.fillStyle = "white";
     contexto.fillText("Jogar Novamente", 60, 485);
-  } else if (game.getCurrentState() == estados.jogando) {
+  } else if (game.isStatePlaying()) {
     contexto.font = "20px arial ";
     contexto.fillStyle = "black";
     contexto.fillText("Score: " + player.getScore(), 10, 20);
@@ -279,7 +305,7 @@ function desenho() {
     enemy.draw();
     player.draw();
     dificuldade();
-  } else if (game.getCurrentState() == estados.desafio) {
+  } else if (game.isStateChallenge()) {
     extraLife.draw(); //VidaExtra();
     boss.draw();
     boss.lifeBar.draw()
@@ -297,11 +323,10 @@ function roda() {
   window.requestAnimationFrame(roda);
 }
 function main() {
-  game.setCurrentState(estados.jogar);
   img = new Image();
   img.src = "newsprite.png";
   roda();
-  document.addEventListener("mousedown", clique);
+  document.addEventListener("mousedown", game.changeState);
 }
 document.addEventListener(
   "keydown",
@@ -339,7 +364,7 @@ function movejogador() {
     pontos = player.getScore();
     vetor[ctd] = pontos;
     ctd += 1;
-    game.setCurrentState(estados.perdeu);
+    game.lost()
     player.setLifes(3);
     player.setScore(0);
     boss.setBarLife(400);
@@ -427,11 +452,11 @@ function moveChefao() {
       player.increaseLife();
       extraLife.setPositionY(500);
       player.increaseScore();
-      game.setCurrentState(estados.jogando);
+      game.playing()
     }
     if (extraLife.getPosition().y > 550) {
       player.increaseScore();
-      game.setCurrentState(estados.jogando);
+      game.playing()
     }
   }
 }
@@ -486,7 +511,7 @@ function dificuldade() {
   if (player.getScore() == 95) {
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
-    game.setCurrentState(estados.desafio);
+    game.challenge();
   } else if (player.getScore() > 100 && player.getScore() <= 240) {
     enemy.setSpeed(2);
     game.dificult = "Fácil";
@@ -496,7 +521,7 @@ function dificuldade() {
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x)
     boss.setBarLife(300);
-    game.setCurrentState(estados.desafio);
+    game.challenge();
   } else if (player.getScore() > 240 && player.getScore() <= 720) {
     enemy.setSpeed(4);
     game.dificult = "Médio";
@@ -506,7 +531,7 @@ function dificuldade() {
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
     boss.setBarLife(400);
-    game.setCurrentState(estados.desafio);
+    game.challenge();
   } else if (player.getScore() > 720 && player.getScore() <= 1440) {
     enemy.setSpeed(6)
     game.dificult = "Difícil";
@@ -516,7 +541,7 @@ function dificuldade() {
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
     boss.setBarLife(500);
-    game.setCurrentState(estados.desafio);
+    game.challenge();
   } else if (player.getScore() > 1440) {
     enemy.setSpeed(8);
     game.dificult = "Muito Difícil";
@@ -526,7 +551,7 @@ function dificuldade() {
     bulletBoss.setPositionY(boss.getPosition().y);
     bulletBoss.setPositionX(boss.getPosition().x);
     boss.setBarLife(600);
-    game.setCurrentState(estados.desafio);
+    game.challenge();
   }
 }
 
@@ -539,5 +564,4 @@ document.addEventListener(
 );
 
 //inicializa o jogo
-let game = new Game(0, 0, "Muito Fácil")
 main();
