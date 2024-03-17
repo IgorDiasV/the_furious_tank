@@ -59,6 +59,10 @@ class GameObject{
     this.sprite.desenha(this.position.x, this.position.y);
   }
 
+  explosion(){
+    expl.desenha(this.getPosition().x, this.getPosition().y);
+  }
+
 }
 
 class Bullet extends GameObject{
@@ -417,8 +421,7 @@ function moveChefao() {
       bulletBoss.getPosition().x >= player.getPosition().x &&
       bulletBoss.getPosition().x <= player.getPosition().x + 77
     ) {
-      expl.desenha(player.getPosition().x, player.getPosition().y);
-      expl.desenha(player.getPosition().x - 5, player.getPosition().y + 10);
+      player.explosion();
       bulletBoss.getPosition().y = boss.getPosition().y + 108;
       bulletBoss.getPosition().x = boss.getPosition().x + 35;
       player.decreaseLife();
@@ -431,8 +434,7 @@ function moveChefao() {
       bulletPlayer.getPosition().x >= boss.getPosition().x &&
       bulletPlayer.getPosition().x <= boss.getPosition().x + 83
     ) {
-      expl.desenha(boss.getPosition().x, boss.getPosition().y);
-      expl.desenha(boss.getPosition().x - 5, boss.getPosition().y + 10);
+      boss.explosion()
       bulletPlayer.getPosition().y = -500;
       boss.decreaseLife();
     }
@@ -485,7 +487,7 @@ function moveinimigo() {
     player.getPosition().x >= enemy.getPosition().x - 80 &&
     player.getPosition().x <= enemy.getPosition().x + 40
   ) {
-    expl.desenha(enemy.getPosition().x, enemy.getPosition().y);
+    enemy.explosion()
     player.decreaseLife();
     enemy.reset()
   }
@@ -496,8 +498,7 @@ function moveinimigo() {
     bulletPlayer.getPosition().x >= enemy.getPosition().x - 8 &&
     bulletPlayer.getPosition().x <= enemy.getPosition().x + 58
   ) {
-    expl.desenha(enemy.getPosition().x, enemy.getPosition().y);
-    expl.desenha(enemy.getPosition().x - 5, enemy.getPosition().y + 10);
+    enemy.explosion()
     enemy.reset()
     player.increaseScore();
     bulletPlayer.getPosition().y = -500;
