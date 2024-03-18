@@ -83,6 +83,7 @@ class  Player extends GameObject{
     super(position, speed, sprite);
     this.score = score;
     this.lifes = lifes;
+    this.bullet = new Bullet({x: 250, y: -500}, 10, Bala);
   }
 
   getLifes() {return this.lifes;}
@@ -90,7 +91,7 @@ class  Player extends GameObject{
 
   setLifes(lifes) {this.lifes = lifes;}
   setScore(score) {this.score = score;}
-  
+
   decreaseLife(){
     this.setLifes(this.getLifes()-1);
   }
@@ -104,6 +105,14 @@ class  Player extends GameObject{
   moveBackward(){
     if(this.getPosition().y <= 370){
       this.setPositionY(this.getPosition().y + this.getSpeed());
+    }
+  }
+
+  shoot(){
+    this.bullet.moveFoward();
+    if (this.bullet.getPosition().y <= -50) {
+      this.bullet.setPositionX(this.getPosition().x + 37.5);
+      this.bullet.setPositionY(this.getPosition().y);
     }
   }
 
@@ -127,6 +136,7 @@ class Boss extends GameObject{
   constructor(position, speed, sprite){
     super(position, speed, sprite)
     this.lifeBar = new LifeBar({x:50, y:10}, 0, 200, 25)
+    this.bullet =  new Bullet({x:285, y: this.getPosition().y + 108}, 6, BalaBoss);
   }
 
   setBarLife(life){
@@ -140,6 +150,16 @@ class Boss extends GameObject{
 
   decreaseLife(){
     this.lifeBar.width -= 20
+  }
+
+  shoot(){
+    if (this.bullet.getPosition().y < 550) {
+      this.bullet.moveBackward();
+      if (this.bullet.getPosition().y >= 530) {
+        this.bullet.setPositionX(this.getPosition().x + 37.5);
+        this.bullet.setPositionY(this.getPosition().y + 108);
+      }
+    }
   }
 
 
@@ -263,10 +283,8 @@ var teclas = {},
   aux = 0,
 
 boss = new Boss({x:250, y:60}, 2.5, bossD);
-bulletBoss =  new Bullet({x:285, y: boss.getPosition().y + 108}, 6, BalaBoss);
 extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta);
 player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem);
-bulletPlayer = new Bullet({x: 250, y: -500}, 10, Bala);
 enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
 let game = new Game("Muito Fácil", Game.states.play);
 
@@ -304,20 +322,20 @@ function desenho() {
     contexto.fillText("Dificuldade: " + game.dificult, 200, 20);
     contexto.fillText("Vidas: " + player.getLifes(), 120, 20);
     moveinimigo();
-    bulletPlayer.draw();
     movejogador();
     enemy.draw();
     player.draw();
+    player.bullet.draw();
     dificuldade();
   } else if (game.isStateChallenge()) {
     extraLife.draw(); //VidaExtra();
     boss.draw();
-    boss.lifeBar.draw()
+    boss.bullet.draw();
+    boss.lifeBar.draw();
     player.draw();
-    bulletPlayer.draw();
+    player.bullet.draw()
     movejogador();
     moveChefao();
-    bulletBoss.draw();
     contexto.fillText("Vidas: " + player.getLifes(), 220, 500);
   }
 }
@@ -353,14 +371,10 @@ function movejogador() {
     player.moveRight();
   }
   if (32 in teclas) {
-    bulletPlayer.moveFoward();
-    if (bulletPlayer.getPosition().y <= -50) {
-      bulletPlayer.setPositionX(player.getPosition().x + 37.5);
-      bulletPlayer.setPositionY(player.getPosition().y);
-    }
+    player.shoot();
   }
-  if (bulletPlayer.getPosition().y > -50) {
-    bulletPlayer.moveFoward();
+  if (player.bullet.getPosition().y > -50) {
+    player.bullet.moveFoward();
   }
 
   //limita as vidas
@@ -389,13 +403,7 @@ function moveChefao() {
   if (boss.hasLife()) {
     cont += 1;
     //tiro aleatorio
-    if (bulletBoss.getPosition().y < 550) {
-      bulletBoss.moveBackward();
-      if (bulletBoss.getPosition().y >= 530) {
-        bulletBoss.setPositionX(boss.getPosition().x + 37.5);
-        bulletBoss.setPositionY(boss.getPosition().y + 108);
-      }
-    }
+    boss.shoot();
     if (cont == 50) {
       // escolhe entre ir pra direita ou para esquerda
       sentido = parseInt(Math.random() * 2);
@@ -416,26 +424,26 @@ function moveChefao() {
     extraLife.setPositionX(boss.getPosition().x + 10);
     // colisao do tiro do boss
     if (
-      bulletBoss.getPosition().y >= player.getPosition().y &&
-      bulletBoss.getPosition().y - 22 <= player.getPosition().y &&
-      bulletBoss.getPosition().x >= player.getPosition().x &&
-      bulletBoss.getPosition().x <= player.getPosition().x + 77
+      boss.bullet.getPosition().y >= player.getPosition().y &&
+      boss.bullet.getPosition().y - 22 <= player.getPosition().y &&
+      boss.bullet.getPosition().x >= player.getPosition().x &&
+      boss.bullet.getPosition().x <= player.getPosition().x + 77
     ) {
       player.explosion();
-      bulletBoss.getPosition().y = boss.getPosition().y + 108;
-      bulletBoss.getPosition().x = boss.getPosition().x + 35;
+      boss.bullet.getPosition().y = boss.getPosition().y + 108;
+      boss.bullet.getPosition().x = boss.getPosition().x + 35;
       player.decreaseLife();
     }
 
     // colisao do tiro do jogador no boss
     if (
-      bulletPlayer.getPosition().y + 104 >= boss.getPosition().y &&
-      bulletPlayer.getPosition().y - 105 <= boss.getPosition().y &&
-      bulletPlayer.getPosition().x >= boss.getPosition().x &&
-      bulletPlayer.getPosition().x <= boss.getPosition().x + 83
+      player.bullet.getPosition().y + 104 >= boss.getPosition().y &&
+      player.bullet.getPosition().y - 105 <= boss.getPosition().y &&
+      player.bullet.getPosition().x >= boss.getPosition().x &&
+      player.bullet.getPosition().x <= boss.getPosition().x + 83
     ) {
       boss.explosion()
-      bulletPlayer.getPosition().y = -500;
+      player.bullet.getPosition().y = -500;
       boss.decreaseLife();
     }
   }
@@ -444,7 +452,7 @@ function moveChefao() {
     extraLife.moveBackward();
 
     boss.getPosition().y = -300;
-    bulletBoss.setPositionY(boss.getPosition().y);
+    boss.bullet.setPositionY(boss.getPosition().y);
     if (
       player.getPosition().y + 56 >= extraLife.getPosition().y &&
       player.getPosition().y - 55 <= extraLife.getPosition().y &&
@@ -493,15 +501,15 @@ function moveinimigo() {
   }
   //colisao entre o tiro e o carro
   if (
-    bulletPlayer.getPosition().y + 104 >= enemy.getPosition().y &&
-    bulletPlayer.getPosition().y - 105 <= enemy.getPosition().y &&
-    bulletPlayer.getPosition().x >= enemy.getPosition().x - 8 &&
-    bulletPlayer.getPosition().x <= enemy.getPosition().x + 58
+    player.bullet.getPosition().y + 104 >= enemy.getPosition().y &&
+    player.bullet.getPosition().y - 105 <= enemy.getPosition().y &&
+    player.bullet.getPosition().x >= enemy.getPosition().x - 8 &&
+    player.bullet.getPosition().x <= enemy.getPosition().x + 58
   ) {
     enemy.explosion()
     enemy.reset()
     player.increaseScore();
-    bulletPlayer.getPosition().y = -500;
+    player.bullet.getPosition().y = -500;
   }
 }
 function dificuldade() {
@@ -510,8 +518,8 @@ function dificuldade() {
     game.dificult = "Muito Fácil";
   }
   if (player.getScore() == 95) {
-    bulletBoss.setPositionY(boss.getPosition().y);
-    bulletBoss.setPositionX(boss.getPosition().x);
+    boss.bullet.setPositionY(boss.getPosition().y);
+    boss.bullet.setPositionX(boss.getPosition().x);
     game.challenge();
   } else if (player.getScore() > 100 && player.getScore() <= 240) {
     enemy.setSpeed(2);
@@ -519,8 +527,8 @@ function dificuldade() {
   }
   if (player.getScore() == 240) {
     boss.getPosition().y = 60;
-    bulletBoss.setPositionY(boss.getPosition().y);
-    bulletBoss.setPositionX(boss.getPosition().x)
+    boss.bullet.setPositionY(boss.getPosition().y);
+    boss.bullet.setPositionX(boss.getPosition().x)
     boss.setBarLife(300);
     game.challenge();
   } else if (player.getScore() > 240 && player.getScore() <= 720) {
@@ -529,8 +537,8 @@ function dificuldade() {
   }
   if (player.getScore() == 720) {
     boss.getPosition().y = 60;
-    bulletBoss.setPositionY(boss.getPosition().y);
-    bulletBoss.setPositionX(boss.getPosition().x);
+    boss.bullet.setPositionY(boss.getPosition().y);
+    boss.bullet.setPositionX(boss.getPosition().x);
     boss.setBarLife(400);
     game.challenge();
   } else if (player.getScore() > 720 && player.getScore() <= 1440) {
@@ -539,8 +547,8 @@ function dificuldade() {
   }
   if (player.getScore() == 1440) {
     boss.getPosition().y = 60;
-    bulletBoss.setPositionY(boss.getPosition().y);
-    bulletBoss.setPositionX(boss.getPosition().x);
+    boss.bullet.setPositionY(boss.getPosition().y);
+    boss.bullet.setPositionX(boss.getPosition().x);
     boss.setBarLife(500);
     game.challenge();
   } else if (player.getScore() > 1440) {
@@ -549,8 +557,8 @@ function dificuldade() {
   }
   if (player.getScore() == 2000) {
     boss.getPosition().y = 60;
-    bulletBoss.setPositionY(boss.getPosition().y);
-    bulletBoss.setPositionX(boss.getPosition().x);
+    boss.bullet.setPositionY(boss.getPosition().y);
+    boss.bullet.setPositionX(boss.getPosition().x);
     boss.setBarLife(600);
     game.challenge();
   }
