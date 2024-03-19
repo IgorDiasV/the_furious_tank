@@ -308,15 +308,11 @@ class CanvasRenderer{
 
 //variaveis
 var teclas = {},
-  pontos,
-  vida,
   cont=0,
   img,
   sentido = 0,
   sentidoc = 0,
-  contc = 0,
-  record = "",
-  aux = 0
+  contc = 0
 
 let boss = new Boss({x:250, y:60}, 2.5, bossD);
 let extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta);
