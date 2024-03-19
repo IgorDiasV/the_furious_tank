@@ -1,5 +1,3 @@
-//criando o canvas
-var canvas = document.createElement("canvas");
 var Altura = window.innerHeight;
 var Largura = window.innerWidth;
 if (Largura >= 500) {
@@ -125,9 +123,8 @@ class LifeBar extends GameObject{
     this.height = height;
     this.color = color;
   }
-  draw(){
-    contexto.fillStyle = this.color;
-    contexto.fillRect(this.getPosition().x, this.getPosition().y, this.width, this.height);
+  draw(renderer){
+    renderer.drawRect(this.color, this.getPosition().x, this.getPosition().y, this.width, this.height)
   }
 
 }
@@ -195,7 +192,14 @@ class Game {
     this.dificult = dificult;
     this.currentState = currentState
     this.changeState = this.changeState.bind(this);
+    this.records = [];
   }
+
+  getRecords(){ 
+    this.records.sort();
+    return this.records;
+  }
+
   getCurrentState(){
     return this.currentState
   }
@@ -203,27 +207,9 @@ class Game {
   setCurrentState(currentState){
     this.currentState = currentState
   }
-  drawBackground() {
-    //preenche o fundo com cinza escuro
-    contexto.fillStyle = "dimgray";
-    contexto.fillRect(0, 0, canvas.width, canvas.height);
 
-    //calcada esquerda
-    contexto.fillStyle = "lightgray";
-    contexto.fillRect(0, 0, 100, canvas.height);
-
-    //calcada direita
-    contexto.fillStyle = "lightgray";
-    contexto.fillRect(400, 0, 100, canvas.height);
-
-    //faixas
-    contexto.fillStyle = "white";
-    for (var i = 0; i < 25; i++) {
-      contexto.fillRect(195, i * 30 - 5, 4, 20);
-      contexto.fillRect(305, i * 30 - 5, 4, 20);
-    }
-  }
-
+  addScore(record){ this.records.push(record); }
+  
   lost(){
     this.setCurrentState(Game.states.lost);
   }
@@ -259,68 +245,100 @@ class Game {
   }
 }
 
-//definindo suas medidas
-canvas.width = Largura;
-canvas.height = Altura;
-//borda largura/tipo/cor
-canvas.style.border = "1px solid black";
-//inclui o canvas no body
-document.body.appendChild(canvas);
-//definindo o contexto
-var contexto = canvas.getContext("2d");
+class CanvasRenderer{
+  constructor(width, height){
+    this.canvas = document.createElement("canvas");
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.canvas.style.border = "1px solid black";
+    this.context = this.canvas.getContext("2d");
+  }
+  getCanvas(){
+    return this.canvas
+  }
+  drawBackground(){
+    //preenche o fundo com cinza escuro
+    this.drawRect("dimgray", 0, 0, this.canvas.width, this.canvas.height);
+
+    //calcada esquerda
+    this.drawRect("lightgray", 0, 0, 100, this.canvas.height);
+
+    //calcada direita
+    this.drawRect("lightgray", 400, 0, 100, this.canvas.height);
+
+    //faixas
+    for (var i = 0; i < 25; i++) {
+      this.drawRect("white", 195, i * 30 - 5, 4, 20);
+      this.drawRect("white", 305, i * 30 - 5, 4, 20);
+    }
+  }
+  drawRect(color, x, y, width, height){
+    this.context.fillStyle = color;
+    this.context.fillRect(x, y, width, height);
+  }
+  writeText(text, x, y, font="28px arial", color='white'){
+    this.context.font=font;
+    this.context.fillStyle = color;
+    this.context.fillText(text, x, y);
+  }
+
+  writeStatus(score, dificult, lifes){
+    this.writeText("Score: " + score, 10, 20, "20px arial", "black");
+    this.writeText("Dificuldade: " + dificult, 200, 20, "20px arial", "black");
+    this.writeText("Vidas: " + lifes, 120, 20, "20px arial", "black");
+  }
+
+  drawStartPage(){
+    fundo.desenha(0, 0);
+    this.drawRect("green", this.canvas.width / 2 - 100, 100, 200, 100)
+    this.writeText("START", 210, 160);
+  }
+
+  drawRecordPage(records){
+    this.drawRect("#669999", 0, 0, 500, 500);
+    this.writeText("Recordes: ", 200, 50, "32px arial");
+    for (var i = 0; i < records.length; i++) {
+      this.writeText(i + 1 + "º: " + records[i], 230, 80 + i * 30, "32px arial");
+    }
+    this.drawRect("#6699CC", 0, 450, 500, 50)
+    this.writeText("Jogar Novamente", 60, 485, "28px Engravers MT");
+  }
+  
+}
+
 //variaveis
 var teclas = {},
   pontos,
   vida,
-  ctd = 0,
-  vetor = [],
+  cont=0,
   img,
-  cont = 0,
   sentido = 0,
   sentidoc = 0,
   contc = 0,
   record = "",
-  aux = 0,
+  aux = 0
 
-boss = new Boss({x:250, y:60}, 2.5, bossD);
-extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta);
-player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem);
-enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
+let boss = new Boss({x:250, y:60}, 2.5, bossD);
+let extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta);
+let player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem);
+let enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
 let game = new Game("Muito Fácil", Game.states.play);
+let  renderer = new CanvasRenderer(Largura, Altura);
+
+document.body.appendChild(renderer.getCanvas());
 
 function desenho() {
-  contexto.clearRect(0, 0, canvas.width, canvas.height);
-
-  game.drawBackground();
+  renderer.context.clearRect(0, 0, Altura, Largura);
+  renderer.drawBackground();
 
   //açoes que ocorrem em cada estado
   if (game.isStatePlay()) {
-    fundo.desenha(0, 0);
-    contexto.fillStyle = "green";
-    contexto.fillRect(Largura / 2 - 100, 100, 200, 100);
-    contexto.font = "28px arial ";
-    contexto.fillStyle = "white";
-    contexto.fillText("START", 210, 160);
+    renderer.drawStartPage();
+
   } else if (game.isStateLost()) {
-    contexto.fillStyle = "#669999";
-    contexto.fillRect(0, 0, 500, 500);
-    contexto.font = "32px arial ";
-    contexto.fillStyle = "white";
-    contexto.fillText("Recordes: ", 200, 50);
-    for (var i = 0; i < ctd; i++) {
-      contexto.fillText(i + 1 + "º: " + vetor[i], 230, 80 + i * 30);
-    }
-    contexto.fillStyle = "#6699CC";
-    contexto.fillRect(0, 450, 500, 50);
-    contexto.font = "28px Engravers MT ";
-    contexto.fillStyle = "white";
-    contexto.fillText("Jogar Novamente", 60, 485);
+    renderer.drawRecordPage(game.getRecords());
   } else if (game.isStatePlaying()) {
-    contexto.font = "20px arial ";
-    contexto.fillStyle = "black";
-    contexto.fillText("Score: " + player.getScore(), 10, 20);
-    contexto.fillText("Dificuldade: " + game.dificult, 200, 20);
-    contexto.fillText("Vidas: " + player.getLifes(), 120, 20);
+    renderer.writeStatus(player.getScore(), game.dificult, player.getLifes())
     moveinimigo();
     movejogador();
     enemy.draw();
@@ -331,12 +349,12 @@ function desenho() {
     extraLife.draw(); //VidaExtra();
     boss.draw();
     boss.bullet.draw();
-    boss.lifeBar.draw();
+    boss.lifeBar.draw(renderer);
     player.draw();
     player.bullet.draw()
     movejogador();
     moveChefao();
-    contexto.fillText("Vidas: " + player.getLifes(), 220, 500);
+    renderer.writeText("Vidas: " + player.getLifes(), 220, 500);
   }
 }
 function roda() {
@@ -379,24 +397,13 @@ function movejogador() {
 
   //limita as vidas
   if (player.getLifes() < 0) {
-    pontos = player.getScore();
-    vetor[ctd] = pontos;
-    ctd += 1;
+    game.addScore(player.getScore());
     game.lost()
     player.setLifes(3);
     player.setScore(0);
     boss.setBarLife(400);
     boss.getPosition().x = 250;
     boss.getPosition().y = 60;
-    for (var i = 0; i < ctd; i++) {
-      for (var j = 0; j < ctd; j++) {
-        if (vetor[i] > vetor[j]) {
-          aux = vetor[j];
-          vetor[j] = vetor[i];
-          vetor[i] = aux;
-        }
-      }
-    }
   }
 }
 function moveChefao() {

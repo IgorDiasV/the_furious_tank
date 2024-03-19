@@ -4,7 +4,7 @@ function Sprite(x, y, largura, altura) {
   this.largura = largura;
   this.altura = altura;
   this.desenha = function (xcanvas, ycanvas) {
-    contexto.drawImage(
+    renderer.context.drawImage(
       img,
       this.x,
       this.y,
