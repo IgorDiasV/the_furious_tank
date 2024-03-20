@@ -114,6 +114,11 @@ class  Player extends GameObject{
     }
   }
 
+  reset(){
+    this.setLifes(3);
+    this.setScore(0);
+  }
+
 }
 
 class LifeBar extends GameObject{
@@ -157,6 +162,12 @@ class Boss extends GameObject{
         this.bullet.setPositionY(this.getPosition().y + 108);
       }
     }
+  }
+
+  reset(){
+    this.setBarLife(400);
+    this.getPosition().x = 250;
+    this.getPosition().y = 60;
   }
 
 
@@ -395,11 +406,8 @@ function movejogador() {
   if (player.getLifes() < 0) {
     game.addScore(player.getScore());
     game.lost()
-    player.setLifes(3);
-    player.setScore(0);
-    boss.setBarLife(400);
-    boss.getPosition().x = 250;
-    boss.getPosition().y = 60;
+    player.reset()
+    boss.reset()
   }
 }
 function moveChefao() {
