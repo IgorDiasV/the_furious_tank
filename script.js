@@ -10,6 +10,8 @@ class GameObject{
     this.position = position;
     this.speed = speed;
     this.sprite = sprite;
+    this.counter = 0;
+    this.direction = 0;
   }
 
   getSpeed(){
@@ -59,6 +61,26 @@ class GameObject{
 
   explosion(){
     expl.desenha(this.getPosition().x, this.getPosition().y);
+  }
+
+  autoMove(){
+    this.counter += 1;
+    if (this.counter == 50) {
+      // escolhe entre ir pra direita ou para esquerda
+      this.direction = parseInt(Math.random() * 2);
+      this.counter = 0;
+    }
+    if (this.direction == 0) {
+      this.moveLeft();
+    } else if (this.direction == 1) {
+      this.moveRight();
+    }
+    if (this.getPosition().x <= 100) {
+      this.direction = 1;
+    }
+    if (this.getPosition().x > 317) {
+      this.direction = 0;
+    }
   }
 
 }
@@ -140,8 +162,6 @@ class Boss extends GameObject{
     this.lifeBar = new LifeBar({x:50, y:10}, 0, 200, 25)
     this.bullet =  new Bullet({x:285, y: this.getPosition().y + 108}, 6, BalaBoss);
     this.renderer = renderer;
-    this.counter = 0;
-    this.direction = 0;
   }
 
   setBarLife(life){
@@ -186,25 +206,6 @@ class Boss extends GameObject{
     super.draw();
   }
 
-  autoMove(){
-    this.counter += 1;
-    if (this.counter == 50) {
-      // escolhe entre ir pra direita ou para esquerda
-      this.direction = parseInt(Math.random() * 2);
-      this.counter = 0;
-    }
-    if (this.direction == 0) {
-      this.moveLeft();
-    } else if (this.direction == 1) {
-      this.moveRight();
-    }
-    if (this.getPosition().x <= 100) {
-      this.direction = 1;
-    }
-    if (this.getPosition().x > 317) {
-      this.direction = 0;
-    }
-  }
 }
 
 class Enemy extends GameObject{
@@ -223,6 +224,16 @@ class Enemy extends GameObject{
   }
   draw(){
     this.sprites[this.index].desenha(this.position.x, this.position.y)
+  }
+
+  autoMove(){
+    if (this.getPosition().y < 500) {
+      this.moveBackward();
+    }
+    if (this.getPosition().y >= 500) {
+      this.reset();
+    }
+    super.autoMove()
   }
 }
 
@@ -353,12 +364,8 @@ class CanvasRenderer{
 }
 
 //variaveis
-var teclas = {},
-  cont=0,
-  img,
-  sentido = 0,
-  sentidoc = 0,
-  contc = 0
+var teclas = {};
+var img;
 
 let  renderer = new CanvasRenderer(Largura, Altura);
 let boss = new Boss({x:250, y:60}, 2.5, bossD, renderer);
@@ -477,7 +484,7 @@ function moveChefao() {
 
   if (!boss.hasLife()) {
     extraLife.moveBackward();
-    
+
     boss.reset();
     if (
       player.getPosition().y + 56 >= extraLife.getPosition().y &&
@@ -497,23 +504,8 @@ function moveChefao() {
   }
 }
 function moveinimigo() {
-  if (enemy.getPosition().y < 500) {
-    enemy.moveBackward();
-  }
-  if (enemy.getPosition().y >= 500) {
-    enemy.reset();
-  }
-  contc += 1;
-  if (contc == 50) {
-    // escolhe entre ir pra direita ou para esquerda
-    sentidoc = parseInt(Math.random() * 2);
-    contc = 0;
-  }
-  if (sentidoc == 0) {
-    enemy.moveLeft();
-  } else if (sentidoc == 1) {
-    enemy.moveRight()
-  }
+
+  enemy.autoMove();
   //colisao entre o jogador e o carro
   if (
     player.getPosition().y >= enemy.getPosition().y - 120 &&
