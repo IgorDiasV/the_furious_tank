@@ -82,7 +82,29 @@ class GameObject{
       this.direction = 0;
     }
   }
-
+  
+  isSameY(opponent){
+    if (
+      this.getPosition().y <= opponent.getPosition().y + opponent.sprite.altura &&
+      this.getPosition().y >= opponent.getPosition().y
+    ) {
+      return true;
+    }
+    return false;
+  }
+  isSameX(opponent){
+    if (
+      this.getPosition().x <= opponent.getPosition().x + opponent.sprite.largura &&
+      this.getPosition().x >= opponent.getPosition().x
+    ) {
+      return true;
+    }
+    return false;
+  }
+  
+  isCollision(opponent){
+    return  this.isSameY(opponent) && this.isSameX(opponent);
+  }
 }
 
 class Bullet extends GameObject{
@@ -212,10 +234,12 @@ class Enemy extends GameObject{
   constructor(position, speed, sprites){
     super(position, speed, sprites[0])
     this.index = 0;
-    this.sprites = sprites
+    this.sprites = sprites;
+    this.sprite = this.sprites[this.index];
   }
   changeCar(){
     this.index = parseInt(Math.random() * this.sprites.length);
+    this.sprite = this.sprites[this.index];
   }
   reset(){
     this.changeCar()
@@ -223,7 +247,7 @@ class Enemy extends GameObject{
     this.setPositionY(-50);
   }
   draw(){
-    this.sprites[this.index].desenha(this.position.x, this.position.y)
+    this.sprite.desenha(this.position.x, this.position.y)
   }
 
   autoMove(){
@@ -470,12 +494,7 @@ function moveChefao() {
     }
 
     // colisao do tiro do jogador no boss
-    if (
-      player.bullet.getPosition().y + 104 >= boss.getPosition().y &&
-      player.bullet.getPosition().y - 105 <= boss.getPosition().y &&
-      player.bullet.getPosition().x >= boss.getPosition().x &&
-      player.bullet.getPosition().x <= boss.getPosition().x + 83
-    ) {
+    if (player.bullet.isCollision(boss)) {
       boss.explosion()
       player.bullet.getPosition().y = -500;
       boss.decreaseLife();
@@ -518,12 +537,7 @@ function moveinimigo() {
     enemy.reset()
   }
   //colisao entre o tiro e o carro
-  if (
-    player.bullet.getPosition().y + 104 >= enemy.getPosition().y &&
-    player.bullet.getPosition().y - 105 <= enemy.getPosition().y &&
-    player.bullet.getPosition().x >= enemy.getPosition().x - 8 &&
-    player.bullet.getPosition().x <= enemy.getPosition().x + 58
-  ) {
+  if (player.bullet.isCollision(enemy)){
     enemy.explosion()
     enemy.reset()
     player.increaseScore();
