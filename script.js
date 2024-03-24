@@ -163,6 +163,10 @@ class  Player extends GameObject{
     this.setScore(0);
   }
 
+  draw(){
+    this.bullet.draw();
+    super.draw();
+  }
 }
 
 class LifeBar extends GameObject{
@@ -416,13 +420,11 @@ function desenho() {
     movejogador();
     enemy.draw();
     player.draw();
-    player.bullet.draw();
     dificuldade();
   } else if (game.isStateChallenge()) {
     extraLife.draw(); //VidaExtra();
     boss.draw();
     player.draw();
-    player.bullet.draw()
     movejogador();
     moveChefao();
     renderer.writeText("Vidas: " + player.getLifes(), 220, 500);
