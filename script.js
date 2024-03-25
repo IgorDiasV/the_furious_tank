@@ -120,6 +120,11 @@ class Bullet extends GameObject{
   moveBackward(){
     this.setPositionY(this.getPosition().y + this.getSpeed());
   }
+
+  reset(x, y){
+    this.setPositionX(x);
+    this.setPositionY(y);
+  }
 }
 
 class  Player extends GameObject{
@@ -209,8 +214,7 @@ class Boss extends GameObject{
     if (this.bullet.getPosition().y < 550) {
       this.bullet.moveBackward();
       if (this.bullet.getPosition().y >= 530) {
-        this.bullet.setPositionX(this.getPosition().x + 37.5);
-        this.bullet.setPositionY(this.getPosition().y + 108);
+        this.bullet.reset(this.getPosition().x + 37.5, this.getPosition().y + 108)
       }
     }
   }
@@ -487,15 +491,14 @@ function moveChefao() {
     // colisao do tiro do boss
     if (player.isCollision(boss.bullet)) {
       player.explosion();
-      boss.bullet.getPosition().y = boss.getPosition().y + 108;
-      boss.bullet.getPosition().x = boss.getPosition().x + 35;
+      boss.bullet.reset(boss.getPosition().x + 35, boss.getPosition().y + 108);
       player.decreaseLife();
     }
 
     // colisao do tiro do jogador no boss
     if (player.bullet.isCollision(boss)) {
       boss.explosion()
-      player.bullet.getPosition().y = -500;
+      player.bullet.setPositionY(-500);
       boss.decreaseLife();
     }
   }
@@ -530,7 +533,7 @@ function moveinimigo() {
     enemy.explosion()
     enemy.reset()
     player.increaseScore();
-    player.bullet.getPosition().y = -500;
+    player.bullet.setPositionY(-500);
   }
 }
 function dificuldade() {
