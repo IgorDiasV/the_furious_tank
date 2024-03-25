@@ -85,8 +85,8 @@ class GameObject{
   
   isSameY(opponent){
     if (
-      this.getPosition().y <= opponent.getPosition().y + opponent.sprite.altura &&
-      this.getPosition().y >= opponent.getPosition().y
+      parseInt(this.getPosition().y) <= parseInt(opponent.getPosition().y) + parseInt(opponent.sprite.altura) &&
+      parseInt(this.getPosition().y) >= parseInt(opponent.getPosition().y)
     ) {
       return true;
     }
@@ -94,8 +94,8 @@ class GameObject{
   }
   isSameX(opponent){
     if (
-      this.getPosition().x <= opponent.getPosition().x + opponent.sprite.largura &&
-      this.getPosition().x >= opponent.getPosition().x
+      parseInt(this.getPosition().x) <= parseInt(opponent.getPosition().x) + parseInt(opponent.sprite.largura) &&
+      parseInt(this.getPosition().x) >= parseInt(opponent.getPosition().x)
     ) {
       return true;
     }
