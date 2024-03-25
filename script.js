@@ -485,12 +485,7 @@ function moveChefao() {
     extraLife.setPositionY(boss.getPosition().y + 5);
     extraLife.setPositionX(boss.getPosition().x + 10);
     // colisao do tiro do boss
-    if (
-      boss.bullet.getPosition().y >= player.getPosition().y &&
-      boss.bullet.getPosition().y - 22 <= player.getPosition().y &&
-      boss.bullet.getPosition().x >= player.getPosition().x &&
-      boss.bullet.getPosition().x <= player.getPosition().x + 77
-    ) {
+    if (player.isCollision(boss.bullet)) {
       player.explosion();
       boss.bullet.getPosition().y = boss.getPosition().y + 108;
       boss.bullet.getPosition().x = boss.getPosition().x + 35;
@@ -509,12 +504,7 @@ function moveChefao() {
     extraLife.moveBackward();
 
     boss.reset();
-    if (
-      player.getPosition().y + 56 >= extraLife.getPosition().y &&
-      player.getPosition().y - 55 <= extraLife.getPosition().y &&
-      player.getPosition().x >= extraLife.getPosition().x - 75 &&
-      player.getPosition().x <= extraLife.getPosition().x + 60
-    ) {
+    if (player.isCollision(extraLife)) {
       player.increaseLife();
       extraLife.setPositionY(500);
       player.increaseScore();
@@ -530,12 +520,7 @@ function moveinimigo() {
 
   enemy.autoMove();
   //colisao entre o jogador e o carro
-  if (
-    player.getPosition().y >= enemy.getPosition().y - 120 &&
-    player.getPosition().y <= enemy.getPosition().y + 90 &&
-    player.getPosition().x >= enemy.getPosition().x - 80 &&
-    player.getPosition().x <= enemy.getPosition().x + 40
-  ) {
+  if (player.isCollision(enemy)) {
     enemy.explosion()
     player.decreaseLife();
     enemy.reset()
