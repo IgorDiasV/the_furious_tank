@@ -272,17 +272,21 @@ class Enemy extends GameObject{
 }
 
 class Game {
-  static states = {
+  static states = { 
                     play: 0,
                     playing: 1,
                     lost: 2,
                     challenge: 3,
                   }
-  constructor(dificult, currentState) {
-    this.dificult = dificult;
+  constructor(currentState) {
     this.currentState = currentState
     this.changeState = this.changeState.bind(this);
     this.records = [];
+    this.index = 0;
+    this.dificults = ["Muito Fácil", "Fácil", "Médio", "Difícil", "Muito Difícil"]
+    this.enemySpeed = [1, 2, 4, 6, 8]
+    this.bossLifeBar = [300, 300, 400, 500, 600]
+    this.dificult = this.dificults[0]; 
   }
 
   getRecords(){ 
@@ -333,6 +337,13 @@ class Game {
     if (this.isStatePlay() || this.isStateLost()) {
       this.setCurrentState(Game.states.playing);
     }
+  }
+
+  increaseDifficulty(enemy, boss){
+    this.index += 1
+    enemy.setSpeed(this.enemySpeed[this.index]);
+    boss.setBarLife(this.bossLifeBar[this.index]);
+    this.dificult = this.dificults[this.index];
   }
 }
 
@@ -405,8 +416,8 @@ let  renderer = new CanvasRenderer(Largura, Altura);
 let boss = new Boss({x:250, y:60}, 2.5, bossD, renderer);
 let extraLife = new GameObject({x: boss.getPosition().x, y: -100}, 5, maleta);
 let player = new Player( {x: 250, y: 350}, 0, 3, 5, personagem);
-let enemy = new Enemy({x: 250, y: 0}, 3, [audi, carroPreto, taxi, carro]);
-let game = new Game("Muito Fácil", Game.states.play);
+let enemy = new Enemy({x: 250, y: 0}, 1, [audi, carroPreto, taxi, carro]);
+let game = new Game(Game.states.play);
 
 document.body.appendChild(renderer.getCanvas());
 
@@ -417,7 +428,6 @@ function desenho() {
   //açoes que ocorrem em cada estado
   if (game.isStatePlay()) {
     renderer.drawStartPage();
-
   } else if (game.isStateLost()) {
     renderer.drawRecordPage(game.getRecords());
   } else if (game.isStatePlaying()) {
@@ -505,22 +515,22 @@ function moveChefao() {
 
   if (!boss.hasLife()) {
     extraLife.moveBackward();
-
     boss.reset();
     if (player.isCollision(extraLife)) {
       player.increaseLife();
       extraLife.setPositionY(500);
       player.increaseScore();
       game.playing()
+      game.increaseDifficulty(enemy, boss);
     }
     if (extraLife.getPosition().y > 550) {
       player.increaseScore();
       game.playing()
-    }
+      game.increaseDifficulty(enemy, boss);
+    }   
   }
 }
 function moveinimigo() {
-
   enemy.autoMove();
   //colisao entre o jogador e o carro
   if (player.isCollision(enemy)) {
@@ -537,41 +547,10 @@ function moveinimigo() {
   }
 }
 function dificuldade() {
-  if (player.getScore() >= 0 && player.getScore() < 95) {
-    enemy.setSpeed(1);
-    game.dificult = "Muito Fácil";
-  }
-  if (player.getScore() == 95) {
-    game.challenge(boss);
-  } else if (player.getScore() > 100 && player.getScore() <= 240) {
-    enemy.setSpeed(2);
-    game.dificult = "Fácil";
-  }
-  if (player.getScore() == 240) {
-    boss.setBarLife(300);
-    game.challenge(boss);
-  } else if (player.getScore() > 240 && player.getScore() <= 720) {
-    enemy.setSpeed(4);
-    game.dificult = "Médio";
-  }
-  if (player.getScore() == 720) {
-    boss.setBarLife(400);
-    game.challenge(boss);
-  } else if (player.getScore() > 720 && player.getScore() <= 1440) {
-    enemy.setSpeed(6)
-    game.dificult = "Difícil";
-  }
-  if (player.getScore() == 1440) {
-    boss.setBarLife(500);
-    game.challenge(boss);
-  } else if (player.getScore() > 1440) {
-    enemy.setSpeed(8);
-    game.dificult = "Muito Difícil";
-  }
-  if (player.getScore() == 2000) {
-    boss.setBarLife(600);
-    game.challenge(boss);
-  }
+  if (player.getScore() == 95 || player.getScore() == 240 || player.getScore() == 720 || 
+      player.getScore() == 1440 || player.getScore() == 2000){
+        game.challenge(boss);
+      }
 }
 
 document.addEventListener(
