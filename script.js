@@ -436,7 +436,10 @@ function desenho() {
     movejogador();
     enemy.draw();
     player.draw();
-    dificuldade();
+    if (player.getScore() == 95 || player.getScore() == 240 || player.getScore() == 720 || 
+        player.getScore() == 1440 || player.getScore() == 2000){
+        game.challenge(boss);
+    }
   } else if (game.isStateChallenge()) {
     extraLife.draw(); //VidaExtra();
     boss.draw();
@@ -545,12 +548,6 @@ function moveinimigo() {
     player.increaseScore();
     player.bullet.setPositionY(-500);
   }
-}
-function dificuldade() {
-  if (player.getScore() == 95 || player.getScore() == 240 || player.getScore() == 720 || 
-      player.getScore() == 1440 || player.getScore() == 2000){
-        game.challenge(boss);
-      }
 }
 
 document.addEventListener(
