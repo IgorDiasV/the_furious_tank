@@ -432,7 +432,8 @@ function desenho() {
     renderer.drawRecordPage(game.getRecords());
   } else if (game.isStatePlaying()) {
     renderer.writeStatus(player.getScore(), game.dificult, player.getLifes())
-    moveinimigo();
+    enemy.autoMove();
+    detectEnemyCollision()
     movejogador();
     enemy.draw();
     player.draw();
@@ -533,8 +534,7 @@ function moveChefao() {
     }   
   }
 }
-function moveinimigo() {
-  enemy.autoMove();
+function detectEnemyCollision() {
   //colisao entre o jogador e o carro
   if (player.isCollision(enemy)) {
     enemy.explosion()
