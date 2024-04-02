@@ -133,6 +133,7 @@ class  Player extends GameObject{
     this.score = score;
     this.lifes = lifes;
     this.bullet = new Bullet({x: 250, y: -500}, 10, Bala);
+    this.isShooting = false
   }
 
   getLifes() {return this.lifes;}
@@ -158,10 +159,10 @@ class  Player extends GameObject{
   }
 
   shoot(){
+    this.isShooting = true;
     this.bullet.moveFoward();
     if (this.bullet.getPosition().y <= -50) {
-      this.bullet.setPositionX(this.getPosition().x + 37.5);
-      this.bullet.setPositionY(this.getPosition().y);
+      this.isShooting = false;
     }
   }
 
@@ -171,8 +172,30 @@ class  Player extends GameObject{
   }
 
   draw(){
+    if(!this.isShooting){
+      this.bullet.setPositionX(this.getPosition().x + 37.5);
+      this.bullet.setPositionY(this.getPosition().y);
+    }
     this.bullet.draw();
     super.draw();
+  }
+
+  detectMove(selectedKeys){
+    if (38 in selectedKeys) {
+      player.moveFoward();
+    }
+    if (40 in selectedKeys) {
+      player.moveBackward();
+    }
+    if (37 in selectedKeys) {
+      player.moveLeft();
+    }
+    if (39 in selectedKeys) {
+      player.moveRight();
+    }
+    if (32 in selectedKeys || this.isShooting) {
+      player.shoot();
+    }
   }
 }
 
@@ -345,6 +368,15 @@ class Game {
     boss.setBarLife(this.bossLifeBar[this.index]);
     this.dificult = this.dificults[this.index];
   }
+
+  detectTheEndOfTheGame(player, boss){
+    if (player.getLifes() < 0) {
+      this.addScore(player.getScore());
+      this.lost()
+      player.reset()
+      boss.reset()
+    }
+  }
 }
 
 class CanvasRenderer{
@@ -434,7 +466,7 @@ function desenho() {
     renderer.writeStatus(player.getScore(), game.dificult, player.getLifes())
     enemy.autoMove();
     detectEnemyCollision()
-    movejogador();
+    player.detectMove(teclas);
     enemy.draw();
     player.draw();
     if (player.getScore() == 95 || player.getScore() == 240 || player.getScore() == 720 || 
@@ -445,10 +477,11 @@ function desenho() {
     extraLife.draw(); //VidaExtra();
     boss.draw();
     player.draw();
-    movejogador();
+    player.detectMove(teclas);
     moveChefao();
     renderer.writeText("Vidas: " + player.getLifes(), 220, 500);
   }
+  game.detectTheEndOfTheGame(player, boss);
 }
 function roda() {
   desenho();
@@ -468,34 +501,6 @@ document.addEventListener(
   },
   false
 );
-function movejogador() {
-  if (38 in teclas) {
-    player.moveFoward();
-  }
-  if (40 in teclas) {
-    player.moveBackward();
-  }
-  if (37 in teclas) {
-    player.moveLeft();
-  }
-  if (39 in teclas) {
-    player.moveRight();
-  }
-  if (32 in teclas) {
-    player.shoot();
-  }
-  if (player.bullet.getPosition().y > -50) {
-    player.bullet.moveFoward();
-  }
-
-  //limita as vidas
-  if (player.getLifes() < 0) {
-    game.addScore(player.getScore());
-    game.lost()
-    player.reset()
-    boss.reset()
-  }
-}
 function moveChefao() {
   if (boss.hasLife()) {
     boss.shoot();
